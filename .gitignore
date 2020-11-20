@@ -4,5 +4,5 @@
 /.vscode
 ./pix2pix/__pycache__
 myvenv
-./db.sqlite3
+db.sqlite3
 ./pix2pix/static
