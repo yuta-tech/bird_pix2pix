@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-
 urlpatterns = [
     path('bird_pix2pix/', include('pix2pix.urls')),
     path('admin/', admin.site.urls),

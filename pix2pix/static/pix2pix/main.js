@@ -4,7 +4,11 @@ window.addEventListener('load', () => {
     const canvas = document.querySelector('#draw-area');
     // contextを使ってcanvasに絵を書いていく
     const context = canvas.getContext('2d');
-  
+    var pen_mode = 0 // 0 pen, 1 fill
+    const clearButton = document.querySelector('#clear-button');
+    const fillButton = document.querySelector('#fill-button');
+    const convertButton = document.querySelector('#convert-button');
+
     // 直前のマウスのcanvas上のx座標とy座標を記録する
     const lastPosition = { x: null, y: null };
   
@@ -65,9 +69,38 @@ window.addEventListener('load', () => {
     function dragStart(event) {
       // これから新しい線を書き始めることを宣言する
       // 一連の線を書く処理が終了したらdragEnd関数内のclosePathで終了を宣言する
-      context.beginPath();
+      if (pen_mode == 1){
+        const inner_canvas = document.querySelector('#draw-area');
+        var drawnImg = inner_canvas.toDataURL("image/png")
+        $.ajax({
+          'url': 'fill/',
+          'type': 'POST',
+          'data':{
+            'imgBase64': drawnImg,
+            'x':event.layerX, 
+            'y':event.layerY
+          }
+        }).done(
+          response => {;
+          // console.log(response);
+          const canvas = document.querySelector("#draw-area");
+          const ctx = canvas.getContext("2d");
+          const img = new Image();
+          // console.log(response.fill_img)
+          img.src = response.fill_img;
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0);
+          };
+          pen_mode = 0
+        }
+        )
+      }
+      else{
+        context.beginPath();
   
-      isDrag = true;
+        isDrag = true;
+      }
+      
     }
     // マウスのドラッグが終了したら、もしくはマウスがcanvas外に移動したら
     // isDragのフラグをfalseにしてdraw関数内でお絵かき処理が中断されるようにする
@@ -80,12 +113,46 @@ window.addEventListener('load', () => {
       lastPosition.x = null;
       lastPosition.y = null;
     }
-  
+    
+    // fill
+    function fill(event){
+      pen_mode = 1
+    }
+
+    // pix2pix convert
+    function convert(event){
+      const inner_canvas = document.querySelector('#draw-area');
+      var drawnImg = inner_canvas.toDataURL("image/png")
+      $.ajax({
+        'url': 'showGen/',
+        'type': 'POST',
+        'data':{
+          'imgBase64': drawnImg
+        }
+      }).done(
+        response => {
+        const canvas = document.querySelector("#show-area");
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        img.src = response.return_img;
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0);
+        };
+
+      }
+      )
+    };
+    
+
     // マウス操作やボタンクリック時のイベント処理を定義する
     function initEventHandler() {
-      const clearButton = document.querySelector('#clear-button');
+      
       clearButton.addEventListener('click', clear);
-  
+      
+      fillButton.addEventListener('click', fill);
+
+      convertButton.addEventListener('click', convert);
+
       canvas.addEventListener('mousedown', dragStart);
       canvas.addEventListener('mouseup', dragEnd);
       canvas.addEventListener('mouseout', dragEnd);
@@ -93,8 +160,8 @@ window.addEventListener('load', () => {
         // eventの中の値を見たい場合は以下のようにconsole.log(event)で、
         // デベロッパーツールのコンソールに出力させると良い
         // console.log(event);
-  
-        draw(event.layerX, event.layerY);
+      
+      draw(event.layerX, event.layerY);
       });
     }
   

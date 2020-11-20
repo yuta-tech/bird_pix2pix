@@ -10,6 +10,7 @@
 <body>
   <h1>Bird Pix2Pix</h1>
   <h2>鳥の輪郭を書いたあと、塗りつぶしをしてください</h2>
+  <div id='fill_debug' style="visibility:hidden">塗りつぶしてください</div>
   <canvas
     id="draw-area"
     width="400px"
@@ -24,8 +25,70 @@
     <button id="clear-button">全消し</button>
   </div>
   <div>
+    <button id="fill-button">塗りつぶし</button>
+  </div>
+  <div>
     <button id="convert-button">実行</button>
   </div>
+  <script src="https://code.jquery.com/jquery-3.5.0.js" integrity="sha256-r/AaFHrszJtwpe+tHyNi/XCfMxYpbsRg2Uqn0x3s2zc=" crossorigin="anonymous"></script>
+  <script>
+    function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        var csrftoken = getCookie('csrftoken');
+
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+  </script>
   <script src="{% static 'pix2pix/main.js' %}"></script>
+  
+  <!-- <script>
+    const canvas = document.querySelector('#draw-area');
+    const drawnImg = canvas.toDataURL("image/png")
+    $('#convert-button').click(function(){
+      $.ajax({
+        'url': 'showGen/',
+        'type': 'POST',
+        'data':{
+          'imgBase64': drawnImg
+        }
+      }).done(
+        // response => {
+      //   const canvas = document.querySelector("#show-area");
+      //   const ctx = canvas.getContext("2d");
+      //   const img = new Image();
+      //   img.src = response.images;
+      //   ctx.drawImage(img, 0, 0);
+
+      // }
+      )
+    })
+
+
+  </script> -->
+</head>
 </body>
 </html>
